@@ -1,20 +1,35 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"log/slog"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
+
+	"github.com/azuresoup/calorie-counter-api/internal/config"
+	"github.com/azuresoup/calorie-counter-api/internal/logger"
+	"github.com/azuresoup/calorie-counter-api/internal/transport/http/handlers"
 )
 
-func Health(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
-		slog.Error("failed to encode response", "error", err)
-	}
-}
-
 func main() {
-	http.HandleFunc("/healthz", Health)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	_ = godotenv.Load()
+
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
+
+	log := logger.New(cfg.LogLevel)
+	slog.SetDefault(log)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /healthz", handlers.Health)
+
+	log.Info("server starting", "port", cfg.Port, "env", cfg.Env)
+	if err := http.ListenAndServe(":"+cfg.Port, mux); err != nil {
+		log.Error("server failed", "error", err)
+		os.Exit(1)
+	}
 }
