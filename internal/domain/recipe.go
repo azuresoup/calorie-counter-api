@@ -1,3 +1,3 @@
 package domain
 
-type Recipe struct {}
+type Recipe struct{}

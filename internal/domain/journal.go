@@ -1,3 +1,3 @@
 package domain
 
-type Journal struct {}
+type Journal struct{}

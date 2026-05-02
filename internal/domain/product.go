@@ -1,3 +1,3 @@
 package domain
 
-type Product struct {}
+type Product struct{}

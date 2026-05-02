@@ -1,3 +1,3 @@
 package domain
 
-type User struct {}
+type User struct{}
