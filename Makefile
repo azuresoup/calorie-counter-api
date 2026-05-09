@@ -1,3 +1,10 @@
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
+
+DATABASE_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+
 .PHONY: run build test lint migrate-up migrate-down docker-up docker-down
 
 run:
@@ -13,13 +20,13 @@ lint:
 	golangci-lint run
 
 migrate-up:
-	@echo "TODO: migrate up"
+	migrate -path migrations -database "$(DATABASE_URL)" up
 
 migrate-down:
-	@echo "TODO: migrate down"
+	migrate -path migrations -database "$(DATABASE_URL)" down 1
 
 docker-up:
-	@echo "TODO: docker up"
+	docker compose up -d
 
 docker-down:
-	@echo "TODO: docker down"
+	docker compose down

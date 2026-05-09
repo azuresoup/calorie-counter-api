@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/azuresoup/calorie-counter-api/internal/config"
 	"github.com/azuresoup/calorie-counter-api/internal/logger"
@@ -23,6 +26,19 @@ func main() {
 
 	log := logger.New(cfg.LogLevel)
 	slog.SetDefault(log)
+
+	dbpool, err := pgxpool.New(context.Background(), cfg.DatabaseURL())
+	if err != nil {
+		slog.Error("Unable to create connection pool", "error", err)
+		os.Exit(1)
+	}
+	defer dbpool.Close()
+
+	if err := dbpool.Ping(context.Background()); err != nil {
+		slog.Error("db ping failed", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("database connected")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", handlers.Health)
